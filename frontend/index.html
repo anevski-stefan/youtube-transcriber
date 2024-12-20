@@ -40,6 +40,12 @@
         .loading {
             display: none;
         }
+        button#downloadBtn {
+            background-color: #4CAF50;
+        }
+        button#downloadBtn:hover {
+            background-color: #45a049;
+        }
     </style>
 </head>
 <body>
@@ -47,11 +53,14 @@
         <h1>YouTube Video Transcriber</h1>
         <input type="text" id="youtubeUrl" placeholder="Enter YouTube URL">
         <button onclick="getTranscript()">Get Transcript</button>
+        <button onclick="downloadTranscript()" id="downloadBtn" style="display: none;">Download Transcript</button>
         <div id="loading" class="loading">Transcribing...</div>
         <div id="transcript"></div>
     </div>
 
     <script>
+        let currentVideoTitle = '';
+
         async function getTranscript() {
             const url = document.getElementById('youtubeUrl').value;
             const loading = document.getElementById('loading');
@@ -78,6 +87,8 @@
 
                 if (response.ok) {
                     transcriptDiv.textContent = data.transcript;
+                    currentVideoTitle = data.title;
+                    document.getElementById('downloadBtn').style.display = 'block';
                 } else {
                     transcriptDiv.textContent = `Error: ${data.detail}`;
                 }
@@ -86,6 +97,31 @@
             } finally {
                 loading.style.display = 'none';
             }
+        }
+
+        function downloadTranscript() {
+            const transcriptText = document.getElementById('transcript').textContent;
+            if (!transcriptText) {
+                alert('No transcript to download');
+                return;
+            }
+
+            const sanitizedTitle = currentVideoTitle
+                .replace(/[^a-z0-9]/gi, '_')
+                .replace(/_+/g, '_')
+                .toLowerCase();
+            
+            const fileName = `${sanitizedTitle}_transcript.txt`;
+
+            const blob = new Blob([transcriptText], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
         }
     </script>
 </body>
