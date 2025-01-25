@@ -51,20 +51,22 @@ uvicorn backend.main:app --reload
 
 ## How It Works
 
-1. The application first attempts to retrieve YouTube's own captions using the `youtube_transcript_api`
-2. If captions are unavailable, it downloads the audio and uses OpenAI's Whisper model for transcription
-3. The transcript is then displayed in the web interface
+1. The application extracts the video ID from various YouTube URL formats
+2. It retrieves the video title using yt-dlp
+3. The system first attempts to retrieve YouTube's own captions using the `youtube_transcript_api`
+4. If captions are unavailable, it downloads the audio and uses OpenAI's Whisper model for transcription
+5. Temporary audio files are automatically cleaned up after processing
 
 ## Project Structure
 
-- `frontend/index.html`: Web interface for the application
-- `backend/main.py`: FastAPI backend server
+- `frontend/index.html`: Modern web interface with responsive design
+- `backend/main.py`: FastAPI backend server with error handling and CORS support
 - `backend/requirements.txt`: Python dependencies
 
 ## API Endpoints
 
 ### POST /transcribe
-Accepts a YouTube URL and returns the video transcript.
+Accepts a YouTube URL and returns the video transcript and title.
 
 Request body:
 ```json
@@ -77,7 +79,8 @@ Response:
 ```json
 {
     "transcript": "The transcribed text...",
-    "method": "youtube_captions" or "whisper"
+    "method": "youtube_captions" or "whisper",
+    "title": "Video Title"
 }
 ```
 
@@ -87,3 +90,20 @@ Response:
 - Failed transcription attempts
 - Network connectivity issues
 - Automatic cleanup of temporary audio files
+- Graceful fallback between transcription methods
+
+## Development
+
+The project uses:
+- FastAPI for the backend
+- Whisper AI for speech-to-text
+- youtube-transcript-api for captions
+- yt-dlp for video information and audio extraction
+- Modern CSS with flexbox for responsive design
+
+## File Management
+
+The project automatically handles temporary files:
+- Temporary audio files are created with format: `temp_[VIDEO_ID].mp3`
+- All temporary files are automatically cleaned up after processing
+- Whisper model files are cached for better performance
