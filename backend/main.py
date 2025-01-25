@@ -6,6 +6,7 @@ import whisper
 import yt_dlp
 import os
 import re
+from yt_dlp import YoutubeDL
 
 app = FastAPI()
 
@@ -61,11 +62,16 @@ async def transcribe_video(youtube_url: YouTubeURL):
     try:
         video_id = extract_video_id(youtube_url.url)
         
+        # Get video title
+        with YoutubeDL() as ydl:
+            info = ydl.extract_info(video_id, download=False)
+            video_title = info['title']
+        
         # First try to get YouTube's own transcription
         try:
             transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
             full_transcript = " ".join([entry['text'] for entry in transcript_list])
-            return {"transcript": full_transcript, "method": "youtube_captions"}
+            return {"transcript": full_transcript, "method": "youtube_captions", "title": video_title}
         except:
             # If YouTube transcription fails, use Whisper
             try:
@@ -79,7 +85,7 @@ async def transcribe_video(youtube_url: YouTubeURL):
                 if os.path.exists(audio_file):
                     os.remove(audio_file)
                 
-                return {"transcript": result["text"], "method": "whisper"}
+                return {"transcript": result["text"], "method": "whisper", "title": video_title}
             except Exception as e:
                 raise HTTPException(status_code=400, detail=f"Whisper transcription failed: {str(e)}")
                 

@@ -6,52 +6,140 @@
     <title>YouTube Transcriber</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            max-width: 1000px;
             margin: 0 auto;
             padding: 20px;
+            background-color: #f5f7fa;
+            line-height: 1.6;
         }
         .container {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 24px;
+            background-color: white;
+            padding: 32px;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 2.2em;
+            text-align: center;
         }
         input {
-            padding: 10px;
+            padding: 12px 16px;
             width: 100%;
             box-sizing: border-box;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        .button-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
         }
         button {
-            padding: 10px 20px;
-            background-color: #ff0000;
-            color: white;
+            padding: 12px 24px;
             border: none;
+            border-radius: 8px;
             cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s ease, background-color 0.2s ease;
         }
         button:hover {
+            transform: translateY(-2px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        button:first-child {
+            background-color: #ff0000;
+            color: white;
+        }
+        button:first-child:hover {
             background-color: #cc0000;
+        }
+        #downloadBtn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        #downloadBtn:hover {
+            background-color: #45a049;
+        }
+        #loading {
+            text-align: center;
+            color: #666;
+            font-style: italic;
         }
         #transcript {
             white-space: pre-wrap;
-            background-color: #f5f5f5;
-            padding: 20px;
-            border-radius: 5px;
+            background-color: #f8fafc;
+            padding: 24px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            font-size: 16px;
+            color: #2c3e50;
+            line-height: 1.8;
+            max-height: 600px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e0 #f8fafc;
+        }
+        #transcript::-webkit-scrollbar {
+            width: 8px;
+        }
+        #transcript::-webkit-scrollbar-track {
+            background: #f8fafc;
+        }
+        #transcript::-webkit-scrollbar-thumb {
+            background-color: #cbd5e0;
+            border-radius: 4px;
         }
         .loading {
             display: none;
+        }
+        .button-group.transcript-actions {
+            display: none;
+        }
+        #copyBtn {
+            background-color: #3498db;
+            color: white;
+        }
+        #copyBtn:hover {
+            background-color: #2980b9;
+        }
+        .transcript-actions {
+            justify-content: flex-end;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>YouTube Video Transcriber</h1>
-        <input type="text" id="youtubeUrl" placeholder="Enter YouTube URL">
-        <button onclick="getTranscript()">Get Transcript</button>
+        <input type="text" id="youtubeUrl" placeholder="Enter YouTube URL here...">
+        <div class="button-group">
+            <button onclick="getTranscript()">Get Transcript</button>
+            <button onclick="downloadTranscript()" id="downloadBtn" style="display: none;">Download Transcript</button>
+        </div>
         <div id="loading" class="loading">Transcribing...</div>
+        <div class="button-group transcript-actions" style="display: none;">
+            <button onclick="copyTranscript()" id="copyBtn">Copy Transcript</button>
+        </div>
         <div id="transcript"></div>
     </div>
 
     <script>
+        let currentVideoTitle = '';
+
         async function getTranscript() {
             const url = document.getElementById('youtubeUrl').value;
             const loading = document.getElementById('loading');
@@ -78,13 +166,58 @@
 
                 if (response.ok) {
                     transcriptDiv.textContent = data.transcript;
+                    currentVideoTitle = data.title;
+                    document.getElementById('downloadBtn').style.display = 'block';
+                    document.querySelector('.transcript-actions').style.display = 'flex';
                 } else {
                     transcriptDiv.textContent = `Error: ${data.detail}`;
+                    document.querySelector('.transcript-actions').style.display = 'none';
                 }
             } catch (error) {
                 transcriptDiv.textContent = `Error: ${error.message}`;
+                document.querySelector('.transcript-actions').style.display = 'none';
             } finally {
                 loading.style.display = 'none';
+            }
+        }
+
+        function downloadTranscript() {
+            const transcriptText = document.getElementById('transcript').textContent;
+            if (!transcriptText) {
+                alert('No transcript to download');
+                return;
+            }
+
+            const sanitizedTitle = currentVideoTitle
+                .replace(/[^a-z0-9]/gi, '_')
+                .replace(/_+/g, '_')
+                .toLowerCase();
+            
+            const fileName = `${sanitizedTitle}_transcript.txt`;
+
+            const blob = new Blob([transcriptText], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+
+        async function copyTranscript() {
+            const transcriptText = document.getElementById('transcript').textContent;
+            try {
+                await navigator.clipboard.writeText(transcriptText);
+                const copyBtn = document.getElementById('copyBtn');
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                }, 2000);
+            } catch (err) {
+                alert('Failed to copy transcript');
             }
         }
     </script>
