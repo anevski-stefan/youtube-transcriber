@@ -18,18 +18,20 @@ A web application that transcribes YouTube videos using either YouTube's built-i
 ## Installation
 
 1. Clone the repository:
-bash
+```bash
 git clone https://github.com/anevski-stefan/youtube-transcriber
 cd youtube-transcriber
+```
 
 2. Create and activate a virtual environment:
 ```bash
 python -m venv venv
-source venv/bin/activate 
+source venv/bin/activate  # On Windows use: venv\Scripts\activate
 ```
 
 3. Install the required Python packages:
 ```bash
+cd backend
 pip install -r requirements.txt
 ```
 
@@ -42,26 +44,26 @@ pip install -r requirements.txt
 
 1. Start the backend server:
 ```bash
-uvicorn backend.main:app --reload
+cd backend
+uvicorn main:app --reload
 ```
 
 2. Open `frontend/index.html` in your web browser
 
 3. Enter a YouTube URL and click "Get Transcript"
 
-## How It Works
-
-1. The application extracts the video ID from various YouTube URL formats
-2. It retrieves the video title using yt-dlp
-3. The system first attempts to retrieve YouTube's own captions using the `youtube_transcript_api`
-4. If captions are unavailable, it downloads the audio and uses OpenAI's Whisper model for transcription
-5. Temporary audio files are automatically cleaned up after processing
-
 ## Project Structure
 
-- `frontend/index.html`: Modern web interface with responsive design
-- `backend/main.py`: FastAPI backend server with error handling and CORS support
-- `backend/requirements.txt`: Python dependencies
+```
+youtube-transcriber/
+├── backend/
+│   ├── main.py           # FastAPI backend server
+│   └── requirements.txt  # Python dependencies
+├── frontend/
+│   └── index.html       # Web interface
+├── LICENSE              # MIT License
+└── README.md           # Project documentation
+```
 
 ## API Endpoints
 
@@ -83,6 +85,14 @@ Response:
     "title": "Video Title"
 }
 ```
+
+## How It Works
+
+1. The application extracts the video ID from various YouTube URL formats
+2. It retrieves the video title using yt-dlp
+3. The system first attempts to retrieve YouTube's own captions using the `youtube_transcript_api`
+4. If captions are unavailable, it downloads the audio and uses OpenAI's Whisper model for transcription
+5. Temporary audio files are automatically cleaned up after processing
 
 ## Error Handling
 
@@ -107,3 +117,7 @@ The project automatically handles temporary files:
 - Temporary audio files are created with format: `temp_[VIDEO_ID].mp3`
 - All temporary files are automatically cleaned up after processing
 - Whisper model files are cached for better performance
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
