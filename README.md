@@ -52,19 +52,6 @@ uvicorn main:app --reload
 
 3. Enter a YouTube URL and click "Get Transcript"
 
-## Project Structure
-
-```
-youtube-transcriber/
-├── backend/
-│   ├── main.py           # FastAPI backend server
-│   └── requirements.txt  # Python dependencies
-├── frontend/
-│   └── index.html       # Web interface
-├── LICENSE              # MIT License
-└── README.md           # Project documentation
-```
-
 ## API Endpoints
 
 ### POST /transcribe
@@ -120,4 +107,4 @@ The project automatically handles temporary files:
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the [MIT License](LICENSE) - see the [LICENSE](LICENSE) file for details.
